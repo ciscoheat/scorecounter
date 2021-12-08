@@ -12,13 +12,30 @@ type PointUpdate = {
     readonly points: number
 }
 
-const players = writable([] as Player[])
-const points = writable([] as PointUpdate[])
+type Game = {
+    readonly players: Player[],
+    readonly points: PointUpdate[]
+}
+
+///////////////////////////////////////////////////////////
+
+// Load from localStorage
+const saved : Game = JSON.parse(localStorage.getItem('game')) ?? {
+    players: [],
+    points: []
+}
+
+const players = writable(saved.players as Player[])
+const points = writable(saved.points as PointUpdate[])
 
 const { subscribe } = derived([players, points], ([$players, $points]) => ({
     players: $players,
     points: $points
 }))
+
+subscribe(data => {
+    localStorage.setItem('game', JSON.stringify(data))
+})
 
 // Player id tracker
 let id = 0
@@ -30,6 +47,11 @@ export default {
     },
     addPlayer: () => {
         players.update(p => [...p, {name: '', id: ++id}])
+        // TODO: Fix this hack
+        setTimeout(() => {
+            const el : HTMLInputElement = document.querySelector('main .player:last-child input')
+            if(el) el.focus()
+        }, 10)
     },
     updatePlayer: (id : Id, e) => {
         players.update(p => {
@@ -37,5 +59,9 @@ export default {
             if(player) player.name = e.target.value
             return p
         })
+    },
+    reset: () => {
+        players.set([])
+        points.set([])
     }
 }
