@@ -35,9 +35,16 @@
 	<div>
 	{#each $game.players as player}
 		<div class="player">
-			<input type="text" value="{player.name}" on:input={e => game.updatePlayer(player.id, e)}> 
-			<span class="score">{scores.get(player.id)}</span>
-			<div class="points">
+			<div class="name">
+				<input type="text" value="{player.name}" on:input={e => game.updatePlayer(player.id, e)}> 
+				{#if !player.name}
+					<button on:click={() => game.deletePlayer(player.id)} class="delete">&#10006;</button>
+				{/if}
+			</div>
+			<div class="score">
+				{scores.get(player.id)}
+			</div>
+			<div class="scorebuttons">
 				<Scorebuttons player={player} update={updateScore} />
 			</div>
 		</div>
@@ -64,21 +71,48 @@
 		justify-content: center;
 
 		.player {
+			display: grid;
+			align-items: baseline;
+			column-gap: 5px;
+			grid-template-columns: 1fr 50px;
+			grid-template-rows: auto;
+			grid-template-areas: 
+				"name score"
+				"scorebuttons scorebuttons";
+
 			margin-bottom: 30px;
+
+			.name {
+				grid-area: name;
+				display: flex;
+				gap: 2px;
+				
+				input {
+					width: 100%;
+				}
+				
+				.delete {
+					padding: 0;
+					border: 0;
+					background-color: transparent;
+					text-align: center;
+					color: red;
+					font-size: larger;
+				}
+			}
 			
 			.score {
-				display: inline-block;
+				grid-area: score;
 				text-align: center;
-				min-width: 40px; 
 				font-weight: bold;
-				margin-left: 5px;
 				padding: 7px 10px;
 				background-color: #eee;
 				border-radius: 10%;
 				font-size: larger;
 			}
 
-			.points {
+			.scorebuttons {
+				grid-area: scorebuttons;
 				display: flex;
 				flex-direction: row;
 				justify-content: space-between;

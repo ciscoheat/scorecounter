@@ -38,7 +38,7 @@ subscribe(data => {
 })
 
 // Player id tracker
-let id = 0
+let id = saved.players.reduce((id, p) => Math.max(id, p.id), 0)
 
 export default {
     subscribe,
@@ -59,6 +59,10 @@ export default {
             if(player) player.name = e.target.value
             return p
         })
+    },
+    deletePlayer: (id : Id) => {
+        players.update(p => p.filter(pl => pl.id != id))
+        points.update(p => p.filter(p1 => p1.player != id))
     },
     reset: () => {
         players.set([])

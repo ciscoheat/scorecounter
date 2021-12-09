@@ -1,11 +1,12 @@
 {
-  "name": "svelte-app",
+  "name": "scorecounter",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
+    "deploy": "surge public scorecounter.surge.sh",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
