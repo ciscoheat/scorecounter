@@ -1,13 +1,15 @@
-import { writable, derived } from 'svelte/store'
+import { get, writable, derived } from 'svelte/store'
 import type { Game, PlayerId, Player, ScoreUpdate } from './types'
 
 ///////////////////////////////////////////////////////////
 
-// Load from localStorage
-const saved : Game = JSON.parse(localStorage.getItem('game')) ?? {
-    players: [],
+const initialState = () => ({
+    players: [{name: '', id: 1}],
     points: []
-}
+} as Game)
+
+// Load saved game
+const saved : Game = JSON.parse(localStorage.getItem('game')) ?? initialState()
 
 const players = writable(saved.players as Player[])
 const points = writable(saved.points as ScoreUpdate[])
@@ -21,9 +23,6 @@ subscribe(data => {
     localStorage.setItem('game', JSON.stringify(data))
 })
 
-// Player id tracker
-let id = saved.players.reduce((id, p) => Math.max(id, p.id), 0)
-
 export default {
     subscribe,
     scores: {
@@ -33,7 +32,8 @@ export default {
     },
     players: {
         add: () => {
-            players.update(p => [...p, {name: '', id: ++id}])
+            const nextId = get(players).reduce((id, p) => Math.max(id, p.id), 0) + 1
+            players.update(p => [...p, {name: '', id: nextId}])
         },
         update: (id : PlayerId, name : string) => {
             players.update(p => p.map(p2 => p2.id != id ? p2 : {id, name}))
@@ -44,7 +44,8 @@ export default {
         }    
     },
     reset: () => {
-        players.set([])
-        points.set([])
+        const state = initialState()
+        players.set(state.players)
+        points.set(state.points)
     }
 }

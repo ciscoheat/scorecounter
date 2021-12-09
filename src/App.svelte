@@ -45,12 +45,16 @@
 		}
 	}
 
-	const addPlayer = async () => {
-		game.players.add()
+	const focusOnLastInputField = async () => {
 		await tick()
 		// Focus on the last input field, to enter player name.
 		const el : HTMLInputElement = document.querySelector('main .player:last-child input')
 		if(el) el.focus()
+	}
+
+	const addPlayer = () => {
+		game.players.add()
+		focusOnLastInputField()
 	}
 </script>
 
@@ -61,7 +65,7 @@
 			<div class="name">
 				<input type="text" value="{player.name}" on:keyup={e => updatePlayer(e, player)}>
 				{#if !player.name}
-					<button on:click={() => game.players.delete(player.id)} class="delete">&#10006;</button>
+					<div on:click={() => game.players.delete(player.id)} class="delete">&#10006;</div>
 				{/if}
 			</div>
 			<div class="score">
@@ -76,7 +80,7 @@
 </main>
 <footer>
 	<button on:click={addPlayer}>Add player</button>
-	<button on:click={() => {if(window.confirm('Are you sure?')) game.reset()}}>Reset</button>
+	<button on:click={() => {if(window.confirm('Are you sure?')) {game.reset(); focusOnLastInputField(); }}}>Reset</button>
 </footer>
 
 <Message message={message} />
@@ -102,6 +106,7 @@
 			.name {
 				grid-area: name;
 				display: flex;
+				align-items: baseline;
 				gap: 2px;
 				
 				input {
