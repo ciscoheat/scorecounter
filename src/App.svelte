@@ -5,20 +5,19 @@
 	import game from './store'
 
 	import { tick } from 'svelte'
+	import type { Player } from './types';
 
-	let scores : Map<number, number>
-	$: {
-		scores = new Map($game.players.map(p => [p.id, 0]))
-
-		for (const point of $game.points) {
-			scores.set(point.player, scores.get(point.player) + point.points)
-		}
-	}
+	$: scores = new Map($game.players.map(player => [
+		player.id, 
+		$game.points
+			.filter(point => point.player == player.id)
+			.reduce((score, point) => score + point.points, 0)
+	]))
 
 	let lastUpdate = {player: null, score: 0}
 	let message = ''
 
-	const updateScore = (player, points) => {
+	const updateScore = (player : Player, points : number) => {
 		game.scores.update(player, points)
 
 		if(lastUpdate.player == player)
@@ -29,10 +28,11 @@
 				score: points
 			}
 
-		message = 'Added ' + lastUpdate.score + ' point(s).'
+		message = (lastUpdate.score >= 0 ? 'Added' : 'Removed') + ' ' + 
+			Math.abs(lastUpdate.score) + ' point' + (Math.abs(lastUpdate.score) == 1 ? '' : 's') + '.'
 	}
 
-	const updatePlayer = (id : number, e) => game.players.update(id, (e.target as HTMLInputElement).value)
+	const updatePlayer = (e, player : Player) => game.players.update(player.id, (e.target as HTMLInputElement).value)
 
 	const addPlayer = async () => {
 		game.players.add()
@@ -48,7 +48,7 @@
 	{#each $game.players as player}
 		<div class="player">
 			<div class="name">
-				<input type="text" value="{player.name}" on:input={e => updatePlayer(player.id, e)}>
+				<input type="text" value="{player.name}" on:input={e => updatePlayer(e, player)}>
 				{#if !player.name}
 					<button on:click={() => game.players.delete(player.id)} class="delete">&#10006;</button>
 				{/if}
@@ -80,7 +80,7 @@
 			display: grid;
 			align-items: baseline;
 			column-gap: 5px;
-			grid-template-columns: 1fr 50px;
+			grid-template-columns: 200px 50px;
 			grid-template-rows: auto;
 			grid-template-areas: 
 				"name score"

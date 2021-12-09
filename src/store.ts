@@ -1,21 +1,5 @@
 import { writable, derived } from 'svelte/store'
-
-type Id = number;
-
-type Player = {
-    name: string,
-    readonly id: Id
-}
-
-type PointUpdate = {
-    readonly player: Id,
-    readonly points: number
-}
-
-type Game = {
-    readonly players: Player[],
-    readonly points: PointUpdate[]
-}
+import type { Game, PlayerId, Player, ScoreUpdate } from './types'
 
 ///////////////////////////////////////////////////////////
 
@@ -26,7 +10,7 @@ const saved : Game = JSON.parse(localStorage.getItem('game')) ?? {
 }
 
 const players = writable(saved.players as Player[])
-const points = writable(saved.points as PointUpdate[])
+const points = writable(saved.points as ScoreUpdate[])
 
 const { subscribe } = derived([players, points], ([$players, $points]) => ({
     players: $players,
@@ -51,14 +35,10 @@ export default {
         add: () => {
             players.update(p => [...p, {name: '', id: ++id}])
         },
-        update: (id : Id, name : string) => {
-            players.update(p => {
-                const player = p.find(player => player.id == id)
-                if(player) player.name = name
-                return p
-            })
+        update: (id : PlayerId, name : string) => {
+            players.update(p => p.map(p2 => p2.id != id ? p2 : {id, name}))
         },
-        delete: (id : Id) => {
+        delete: (id : PlayerId) => {
             players.update(p => p.filter(pl => pl.id != id))
             points.update(p => p.filter(p1 => p1.player != id))
         }    
