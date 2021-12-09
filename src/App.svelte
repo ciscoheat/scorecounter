@@ -66,15 +66,12 @@
 		.player {
 			margin-bottom: 30px;
 			
-			input {
-			}
-			
 			.score {
 				display: inline-block;
 				text-align: center;
 				min-width: 40px; 
 				font-weight: bold;
-				margin: 5px;
+				margin-left: 5px;
 				padding: 7px 10px;
 				background-color: #eee;
 				border-radius: 10%;
