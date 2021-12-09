@@ -20,9 +20,9 @@
 
 <style lang="scss">
 	.message {
-		position: sticky;
+		position: fixed;
 		width: 100%;
-		top: 90vh;
+		bottom: 10px;
 		
 		.inner {
 			width: 90%;

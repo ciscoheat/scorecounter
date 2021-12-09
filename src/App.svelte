@@ -14,25 +14,36 @@
 			.reduce((score, point) => score + point.points, 0)
 	]))
 
-	let lastUpdate = {player: null, score: 0}
+	let lastScorer = {player: (null as Player), score: 0}
 	let message = ''
 
 	const updateScore = (player : Player, points : number) => {
 		game.scores.update(player, points)
 
-		if(lastUpdate.player == player)
-			lastUpdate.score += points
+		if(lastScorer.player == player)
+			lastScorer.score += points
 		else
-			lastUpdate = {
+			lastScorer = {
 				player: player,
 				score: points
 			}
 
-		message = (lastUpdate.score >= 0 ? 'Added' : 'Removed') + ' ' + 
-			Math.abs(lastUpdate.score) + ' point' + (Math.abs(lastUpdate.score) == 1 ? '' : 's') + '.'
+		message = (lastScorer.score >= 0 ? 'Added' : 'Removed') + ' ' + 
+			Math.abs(lastScorer.score) + ' point' + (Math.abs(lastScorer.score) == 1 ? '' : 's') + ' to ' + lastScorer.player.name + '.'
 	}
 
-	const updatePlayer = (e, player : Player) => game.players.update(player.id, (e.target as HTMLInputElement).value)
+	const updatePlayer = (e : KeyboardEvent, player : Player) => {
+		const target = e.target as HTMLInputElement
+
+		if(e.code == 'Enter') {
+			if(!player.name)
+				game.players.delete(player.id)
+			else
+				addPlayer()
+		} else {
+			game.players.update(player.id, target.value)
+		}
+	}
 
 	const addPlayer = async () => {
 		game.players.add()
@@ -48,7 +59,7 @@
 	{#each $game.players as player}
 		<div class="player">
 			<div class="name">
-				<input type="text" value="{player.name}" on:input={e => updatePlayer(e, player)}>
+				<input type="text" value="{player.name}" on:keyup={e => updatePlayer(e, player)}>
 				{#if !player.name}
 					<button on:click={() => game.players.delete(player.id)} class="delete">&#10006;</button>
 				{/if}
