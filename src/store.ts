@@ -42,27 +42,31 @@ let id = saved.players.reduce((id, p) => Math.max(id, p.id), 0)
 
 export default {
     subscribe,
-    updateScore: (player : Player, pointsChange : number) => {
-        points.update(p => [...p, {player: player.id, points: pointsChange}])
+    scores: {
+        update: (player : Player, pointsChange : number) => {
+            points.update(p => [...p, {player: player.id, points: pointsChange}])
+        }
     },
-    addPlayer: () => {
-        players.update(p => [...p, {name: '', id: ++id}])
-        // TODO: Fix this hack
-        setTimeout(() => {
-            const el : HTMLInputElement = document.querySelector('main .player:last-child input')
-            if(el) el.focus()
-        }, 10)
-    },
-    updatePlayer: (id : Id, e) => {
-        players.update(p => {
-            const player = p.find(player => player.id == id)
-            if(player) player.name = e.target.value
-            return p
-        })
-    },
-    deletePlayer: (id : Id) => {
-        players.update(p => p.filter(pl => pl.id != id))
-        points.update(p => p.filter(p1 => p1.player != id))
+    players: {
+        add: () => {
+            players.update(p => [...p, {name: '', id: ++id}])
+            // TODO: Fix this hack
+            setTimeout(() => {
+                const el : HTMLInputElement = document.querySelector('main .player:last-child input')
+                if(el) el.focus()
+            }, 10)
+        },
+        update: (id : Id, name : string) => {
+            players.update(p => {
+                const player = p.find(player => player.id == id)
+                if(player) player.name = name
+                return p
+            })
+        },
+        delete: (id : Id) => {
+            players.update(p => p.filter(pl => pl.id != id))
+            points.update(p => p.filter(p1 => p1.player != id))
+        }    
     },
     reset: () => {
         players.set([])

@@ -17,7 +17,7 @@
 	let message = ''
 
 	const updateScore = (player, points) => {
-		game.updateScore(player, points)
+		game.scores.update(player, points)
 
 		if(lastUpdate.player == player)
 			lastUpdate.score += points
@@ -29,6 +29,8 @@
 
 		message = 'Added ' + lastUpdate.score + ' point(s).'
 	}
+
+	const updatePlayer = (id : number, e) => game.players.update(id, (e.target as HTMLInputElement).value)
 </script>
 
 <main>
@@ -36,9 +38,9 @@
 	{#each $game.players as player}
 		<div class="player">
 			<div class="name">
-				<input type="text" value="{player.name}" on:input={e => game.updatePlayer(player.id, e)}> 
+				<input type="text" value="{player.name}" on:input={e => updatePlayer(player.id, e)}>
 				{#if !player.name}
-					<button on:click={() => game.deletePlayer(player.id)} class="delete">&#10006;</button>
+					<button on:click={() => game.players.delete(player.id)} class="delete">&#10006;</button>
 				{/if}
 			</div>
 			<div class="score">
@@ -52,7 +54,7 @@
 	</div>	
 </main>
 <footer>
-	<button on:click={game.addPlayer}>Add player</button>
+	<button on:click={game.players.add}>Add player</button>
 	<button on:click={() => {if(window.confirm('Are you sure?')) game.reset()}}>Reset</button>
 </footer>
 
