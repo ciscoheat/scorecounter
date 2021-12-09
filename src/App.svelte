@@ -4,6 +4,8 @@
 
 	import game from './store'
 
+	import { tick } from 'svelte'
+
 	let scores : Map<number, number>
 	$: {
 		scores = new Map($game.players.map(p => [p.id, 0]))
@@ -31,6 +33,14 @@
 	}
 
 	const updatePlayer = (id : number, e) => game.players.update(id, (e.target as HTMLInputElement).value)
+
+	const addPlayer = async () => {
+		game.players.add()
+		await tick()
+		// Focus on the last input field, to enter player name.
+		const el : HTMLInputElement = document.querySelector('main .player:last-child input')
+		if(el) el.focus()
+	}
 </script>
 
 <main>
@@ -54,19 +64,13 @@
 	</div>	
 </main>
 <footer>
-	<button on:click={game.players.add}>Add player</button>
+	<button on:click={addPlayer}>Add player</button>
 	<button on:click={() => {if(window.confirm('Are you sure?')) game.reset()}}>Reset</button>
 </footer>
 
 <Message message={message} />
 
 <style lang="scss">
-	body {
-		margin: 0; 
-		padding: 0;
-		height: 100vh;
-	}
-
 	main {
 		padding-top: 30px;
 		display: flex;

@@ -4,7 +4,7 @@ type Id = number;
 
 type Player = {
     name: string,
-    id: Id
+    readonly id: Id
 }
 
 type PointUpdate = {
@@ -50,11 +50,6 @@ export default {
     players: {
         add: () => {
             players.update(p => [...p, {name: '', id: ++id}])
-            // TODO: Fix this hack
-            setTimeout(() => {
-                const el : HTMLInputElement = document.querySelector('main .player:last-child input')
-                if(el) el.focus()
-            }, 10)
         },
         update: (id : Id, name : string) => {
             players.update(p => {
