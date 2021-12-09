@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Scorebuttons from './Scorebuttons.svelte'
+	import Message from './Message.svelte'
+
 	import game from './store'
-	import { fade } from 'svelte/transition'
 
 	let scores : Map<number, number>
 	$: {
@@ -14,7 +15,6 @@
 
 	let lastUpdate = {player: null, score: 0}
 	let message = ''
-	let msgTimer;
 
 	const updateScore = (player, points) => {
 		game.updateScore(player, points)
@@ -28,9 +28,6 @@
 			}
 
 		message = 'Added ' + lastUpdate.score + ' point(s).'
-
-		if(msgTimer) clearTimeout(msgTimer)
-		msgTimer = setTimeout(() => message = '', 5000)
 	}
 </script>
 
@@ -49,27 +46,16 @@
 </main>
 <footer>
 	<button on:click={game.addPlayer}>Add player</button>
-	<button on:click={e => {if(window.confirm('Are you sure?')) game.reset()}}>Reset</button>
+	<button on:click={() => {if(window.confirm('Are you sure?')) game.reset()}}>Reset</button>
 </footer>
 
-{#if message}
-	<div transition:fade class="message">{message}</div>
-{/if}
+<Message message={message} />
 
 <style lang="scss">
 	body {
 		margin: 0; 
 		padding: 0;
 		height: 100vh;
-	}
-
-	.message {
-		padding: 10px;
-		color: white;
-		background-color: #f95;
-		text-align: center;
-		position: sticky;
-		top: 90vh;
 	}
 
 	main {
