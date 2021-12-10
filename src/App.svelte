@@ -10,26 +10,37 @@
 	$: scores = new Map($game.players.map(player => [
 		player.id, 
 		$game.points
-			.filter(point => point.player == player.id)
+			.filter(point => point.playerId == player.id)
 			.reduce((score, point) => score + point.points, 0)
 	]))
 
-	let lastScorer = {player: (null as Player), score: 0}
 	let message = ''
 
-	const updateScore = (player : Player, points : number) => {
-		game.scores.update(player, points)
+	const updateLastScorer = () => {
+		const lastPoint = $game.points.length-1
+		const lastPlayer = lastPoint >= 0
+			? $game.players.find(p => p.id == $game.points[lastPoint].playerId)
+			: null
 
-		if(lastScorer.player == player)
-			lastScorer.score += points
-		else
-			lastScorer = {
-				player: player,
-				score: points
+		if(lastPlayer) {
+			let sum = 0
+			for (let i = lastPoint; i >= 0; i--) {
+				const point = $game.points[i];
+				if(point.playerId != lastPlayer.id) break;
+				else sum += point.points
 			}
+			return {player: lastPlayer, score: sum}
+		} else {
+			return {player: null, score: 0}
+		}
+	}
 
-		message = (lastScorer.score >= 0 ? 'Added' : 'Removed') + ' ' + 
-			Math.abs(lastScorer.score) + ' point' + (Math.abs(lastScorer.score) == 1 ? '' : 's') + ' to ' + lastScorer.player.name + '.'
+	const updateScore = async (player : Player, points : number) => {
+		game.scores.update(player, points)
+		const scorer = updateLastScorer()
+
+		message = (scorer.score >= 0 ? 'Added' : 'Removed') + ' ' + 
+			Math.abs(scorer.score) + ' point' + (Math.abs(scorer.score) == 1 ? '' : 's') + ' to ' + scorer.player.name + '.'
 	}
 
 	const updatePlayer = (e : KeyboardEvent, player : Player) => {
@@ -68,7 +79,7 @@
 					<div on:click={() => game.players.delete(player.id)} class="delete">&#10006;</div>
 				{/if}
 			</div>
-			<div class="score">
+			<div class="score" class:selected={player.id == $game.points[$game.points.length-1]?.playerId}>
 				{scores.get(player.id)}
 			</div>
 			<div class="scorebuttons">
@@ -125,12 +136,18 @@
 			
 			.score {
 				grid-area: score;
+				box-sizing: border-box;
 				text-align: center;
 				font-weight: bold;
 				padding: 7px 10px;
 				background-color: #eee;
 				border-radius: 10%;
 				font-size: larger;
+
+				&.selected {
+					padding: 6px 10px;
+					border: 1px solid #888;
+				}
 			}
 
 			.scorebuttons {

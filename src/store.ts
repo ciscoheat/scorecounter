@@ -27,7 +27,7 @@ export default {
     subscribe,
     scores: {
         update: (player : Player, pointsChange : number) => {
-            points.update(p => [...p, {player: player.id, points: pointsChange}])
+            points.update(p => [...p, {playerId: player.id, points: pointsChange}])
         }
     },
     players: {
@@ -40,7 +40,7 @@ export default {
         },
         delete: (id : PlayerId) => {
             players.update(p => p.filter(pl => pl.id != id))
-            points.update(p => p.filter(p1 => p1.player != id))
+            points.update(p => p.filter(p1 => p1.playerId != id))
         }    
     },
     reset: () => {

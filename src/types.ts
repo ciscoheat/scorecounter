@@ -6,7 +6,7 @@ export type Player = {
 }
 
 export type ScoreUpdate = {
-    readonly player: PlayerId,
+    readonly playerId: PlayerId,
     readonly points: number
 }
 
