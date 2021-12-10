@@ -11,6 +11,7 @@ export type ScoreUpdate = {
 }
 
 export type Game = {
+    timer: number,
     readonly players: Player[],
     readonly points: ScoreUpdate[]
 }

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import Scorebuttons from './Scorebuttons.svelte'
 	import Message from './Message.svelte'
+	import Timer from './Timer.svelte';
 
-	import game from './store'
-
+	import { game } from './store'
 	import { tick } from 'svelte'
+	
 	import type { Player } from './types';
 
 	$: scores = new Map($game.players.map(player => [
@@ -69,6 +70,9 @@
 	}
 </script>
 
+<header>
+	<Timer />
+</header>
 <main>
 	<div>
 	{#each $game.players as player}
@@ -96,7 +100,12 @@
 
 <Message message={message} />
 
+
 <style lang="scss">
+	header {
+		padding-top: 10px;
+	}
+
 	main {
 		padding-top: 30px;
 		display: flex;

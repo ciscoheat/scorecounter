@@ -4,26 +4,31 @@ import type { Game, PlayerId, Player, ScoreUpdate } from './types'
 ///////////////////////////////////////////////////////////
 
 const initialState = () => ({
+    timer: 30,
     players: [{name: '', id: 1}],
     points: []
 } as Game)
 
-// Load saved game
-const saved : Game = JSON.parse(localStorage.getItem('game')) ?? initialState()
+// Load saved game or use default
+const gameState : Game = JSON.parse(localStorage.getItem('game')) ?? initialState()
 
-const players = writable(saved.players as Player[])
-const points = writable(saved.points as ScoreUpdate[])
+const players = writable(gameState.players as Player[])
+const points = writable(gameState.points as ScoreUpdate[])
 
-const { subscribe } = derived([players, points], ([$players, $points]) => ({
+export const timer = writable(gameState.timer ?? 30)
+
+const { subscribe } = derived([players, points, timer], ([$players, $points, $timer]) => ({
     players: $players,
-    points: $points
+    points: $points,
+    timer: $timer
 }))
 
+// Save automatically
 subscribe(data => {
     localStorage.setItem('game', JSON.stringify(data))
 })
 
-export default {
+export const game = {
     subscribe,
     scores: {
         update: (player : Player, pointsChange : number) => {
@@ -47,5 +52,6 @@ export default {
         const state = initialState()
         players.set(state.players)
         points.set(state.points)
+        timer.set(state.timer)
     }
 }
