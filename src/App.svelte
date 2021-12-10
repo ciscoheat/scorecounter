@@ -68,6 +68,18 @@
 		game.players.add()
 		focusOnLastInputField()
 	}
+
+	let resetType
+	const reset = () => {
+		if(resetType == '' || !window.confirm('Are you sure?')) return
+
+		game.reset(resetType)
+		
+		if(resetType == 'all')
+			focusOnLastInputField()
+
+		resetType = ''
+	}
 </script>
 
 <header>
@@ -95,7 +107,11 @@
 </main>
 <footer>
 	<button on:click={addPlayer}>Add player</button>
-	<button on:click={() => {if(window.confirm('Are you sure?')) {game.reset(); focusOnLastInputField(); }}}>Reset</button>
+	<select bind:value={resetType} on:change={reset}>
+		<option value="">Reset</option>
+		<option value="scores">Scores</option>
+		<option value="all">All</option>
+	</select>
 </footer>
 
 <Message message={message} />
@@ -103,7 +119,11 @@
 
 <style lang="scss">
 	header {
+		position: sticky;
+		top: 0;
 		padding-top: 10px;
+		border-bottom: 1px solid #ddd;
+		background-color: #fcfcfc;
 	}
 
 	main {
@@ -171,9 +191,14 @@
 	footer {
 		display: flex;
 		justify-content: center;
+		align-items: baseline;
 
 		button {
 			margin: 10px;
+		}
+
+		select {
+			height: 36px;
 		}
 	}
 
