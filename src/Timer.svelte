@@ -24,7 +24,8 @@
 	let sound : Howl
 
 	const started = () => stopTimer
-	const start = async () => {
+	
+	export const start = async () => {
 		if(started()) return
 
 		elapsed = false
@@ -41,7 +42,7 @@
 				display = Math.min($timerInterval, Math.round((countdown.getTime() - d.getTime()) / 1000))
 		})
 	}
-	const stop = (hasElapsed = false) => {
+	export const stop = (hasElapsed = false) => {
 		if(stopTimer) {
 			stopTimer()
 			stopTimer = null

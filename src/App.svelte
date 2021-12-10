@@ -4,7 +4,7 @@
 	import Timer from './Timer.svelte';
 
 	import { game } from './store'
-	import { tick } from 'svelte'
+	import { onDestroy, tick } from 'svelte'
 	
 	import type { Player } from './types';
 
@@ -15,6 +15,7 @@
 			.reduce((score, point) => score + point.points, 0)
 	]))
 
+	let timer : {stop: () => void, start: () => void}
 	let message = ''
 
 	const updateLastScorer = () => {
@@ -39,6 +40,8 @@
 	const updateScore = async (player : Player, points : number) => {
 		game.scores.update(player, points)
 		const scorer = updateLastScorer()
+
+		timer?.stop()
 
 		message = (scorer.score >= 0 ? 'Added' : 'Removed') + ' ' + 
 			Math.abs(scorer.score) + ' point' + (Math.abs(scorer.score) == 1 ? '' : 's') + ' to ' + scorer.player.name + '.'
@@ -73,17 +76,27 @@
 	const reset = () => {
 		if(resetType == '' || !window.confirm('Are you sure?')) return
 
-		game.reset(resetType)
-		
-		if(resetType == 'all')
-			focusOnLastInputField()
+		switch (resetType) {
+			case 'scores':
+				game.reset.scores()
+				break
+
+			case 'all':
+				game.reset.all()
+				focusOnLastInputField()
+				break
+		}
 
 		resetType = ''
 	}
+
+	onDestroy(() => {
+		timer = null
+	})
 </script>
 
 <header>
-	<Timer />
+	<Timer bind:this={timer} />
 </header>
 <main>
 	<div>

@@ -48,15 +48,18 @@ export const game = {
             points.update(p => p.filter(p1 => p1.playerId != id))
         }    
     },
-    reset: (type : 'all' | 'scores') => {
-        const state = initialState()
-
-        if(type == 'all' || type =='scores')
-            points.set(state.points)
-
-        if(type == 'all') {
+    reset: {
+        all: () => {
+            const state = initialState()
+    
+            points.set(state.points)    
             players.set(state.players)
             timer.set(state.timer)
+        },
+        scores: () => {
+            const state = initialState()
+
+            points.set(state.points)    
         }
     }
 }
