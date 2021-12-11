@@ -15,7 +15,7 @@
 			.reduce((score, point) => score + point.points, 0)
 	]))
 
-	let timer : {stop: () => void, start: () => void}
+	let _timer : {stop: () => void, start: () => void}
 	let message = ''
 
 	const updateLastScorer = () => {
@@ -38,13 +38,17 @@
 	}
 
 	const updateScore = async (player : Player, points : number) => {
+		_timer?.stop()
+
 		game.scores.update(player, points)
 		const scorer = updateLastScorer()
 
-		timer?.stop()
+		const pointWord = 'point' + (Math.abs(scorer.score) == 1 ? '' : 's')
+		const absPoints = Math.abs(scorer.score)
 
-		message = (scorer.score >= 0 ? 'Added' : 'Removed') + ' ' + 
-			Math.abs(scorer.score) + ' point' + (Math.abs(scorer.score) == 1 ? '' : 's') + ' to ' + scorer.player.name + '.'
+		message = (scorer.score >= 0 
+			? `Added ${absPoints} ${pointWord} to `
+			: `Removed ${absPoints} ${pointWord} from `) + scorer.player.name + '.'
 	}
 
 	const updatePlayer = (e : KeyboardEvent, player : Player) => {
@@ -91,12 +95,12 @@
 	}
 
 	onDestroy(() => {
-		timer = null
+		_timer = null
 	})
 </script>
 
 <header>
-	<Timer bind:this={timer} />
+	<Timer bind:this={_timer} />
 </header>
 <main>
 	<div>
@@ -173,6 +177,7 @@
 					text-align: center;
 					color: red;
 					font-size: larger;
+					cursor: pointer;
 				}
 			}
 			
