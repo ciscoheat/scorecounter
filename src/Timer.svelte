@@ -18,49 +18,47 @@
 	///////////////////////////////////////////////////////
 
 	let display = $timerInterval
-	let countdown : Date | null;
-	let sound : Howl
+	let _countdown : Date | null;
+	let _sound : Howl
 
-	let started : boolean
-	let elapsed : boolean
+	const started = () => !!_countdown
+	const elapsed = () => started() && _countdown < new Date()
 
 	timer.subscribe(now => {
-		started = !!countdown
-		elapsed = started && countdown < now
-
-		display = started
-			? Math.max(0, Math.min($timerInterval, Math.round((countdown.getTime() - now.getTime()) / 1000)))
+		display = started()
+			? Math.max(0, Math.min($timerInterval, Math.round((_countdown.getTime() - now.getTime()) / 1000)))
 			: $timerInterval
 
-		if(elapsed && sound) {
-			sound.play()
-			sound = null
+		if(elapsed() && _sound) {
+			_sound.play()
+			_sound = null
 		}
 	})
 
 	export const start = () => {
-		countdown = new Date()
-		countdown.setSeconds(countdown.getSeconds() + $timerInterval)
-		sound = new Howl({ src: ['elapsed.mp3'] })
+		_countdown = new Date()
+		_countdown.setSeconds(_countdown.getSeconds() + $timerInterval)
+		_sound = new Howl({ src: ['elapsed.mp3'] })
 	}
 	export const stop = () => {
-		countdown = null
+		_countdown = null
 	}
 
-	const intervalChanged = e => {
+	const userChangedInterval = e => {
 		stop()
 		timerInterval.set(parseInt((e.target as HTMLInputElement).value))
 	}
-
 </script>
 
+
 <div class="timer">
-	<div>Timer <input type="number" class="length" value={display} on:input={intervalChanged} min=1> s</div>
+	<div>Timer <input type="number" value={display} on:input={userChangedInterval} min=1> s</div>
 	<div>
-		<button class="start" class:alt={started && !elapsed && $alternate} on:click={start}>Start</button> 
-		<button class="stop" class:alt={elapsed && $alternate} on:click={() => stop()}>Stop</button>
+		<button class="start" class:alt={started() && !elapsed() && $alternate} on:click={start}>Start</button> 
+		<button class="stop" class:alt={elapsed() && $alternate} on:click={stop}>Stop</button>
 	</div>
 </div>
+
 
 <style lang="scss">
 	.timer {
@@ -71,9 +69,6 @@
 
 		input {
 			font-weight: bold;
-		}
-
-		.length {
 			width: 50px;
 		}
 
