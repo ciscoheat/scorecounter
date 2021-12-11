@@ -18,7 +18,7 @@
 	let _timer : {stop: () => void, start: () => void}
 	let message = ''
 
-	const updateLastScorer = () => {
+	const lastScorer = () => {
 		const lastPoint = $game.points.length-1
 		const lastPlayer = lastPoint >= 0
 			? $game.players.find(p => p.id == $game.points[lastPoint].playerId)
@@ -41,7 +41,7 @@
 		_timer?.stop()
 
 		game.scores.update(player, points)
-		const scorer = updateLastScorer()
+		const scorer = lastScorer()
 
 		const pointWord = 'point' + (Math.abs(scorer.score) == 1 ? '' : 's')
 		const absPoints = Math.abs(scorer.score)
