@@ -10,22 +10,22 @@
 
 	///////////////////////////////////////////////////////
 
-	let scores = game.points
+	let SCORES = game.points
 
-	const scores_update = async (player : Player, points : number) => {
-		timer_stop()
-		scores.update(player, points)
-		message_displayAddedScore()
+	const SCORES_update = async (player : Player, points : number) => {
+		TIMER_stop()
+		SCORES.update(player, points)
+		MESSAGE_displayAddedScore()
 	}
 
-	const scores_lastPlayer = (player : Player) => 
+	const SCORE_isLastScorer = (player : Player) => 
 		player.id == $game.points[$game.points.length-1]?.playerId
 
 	///////////////////////////////////////////////////////
 
-	let message = ''
+	let MESSAGE = ''
 
-	const message_displayAddedScore = () => {
+	const MESSAGE_displayAddedScore = () => {
 		const lastPoint = $game.points.length-1
 		const lastPlayer = lastPoint >= 0
 			? $game.players.find(p => p.id == $game.points[lastPoint].playerId)
@@ -43,7 +43,7 @@
 			const pointWord = 'point' + (Math.abs(sum) == 1 ? '' : 's')
 			const absPoints = Math.abs(sum)
 
-			message = (sum >= 0 
+			MESSAGE = (sum >= 0 
 				? `Added ${absPoints} ${pointWord} to `
 				: `Removed ${absPoints} ${pointWord} from `) + lastPlayer.name + '.'
 		}
@@ -51,60 +51,65 @@
 
 	///////////////////////////////////////////////////////
 
-	let timer : {stop: () => void, start: () => void}
+	let TIMER : {stop: () => void, start: () => void}
 
-	const timer_stop = () => timer.stop()
+	const TIMER_stop = () => TIMER.stop()
 
 	///////////////////////////////////////////////////////
 
-	let players = game.players
+	let PLAYERS = game.players
 
-	const players_update = (e : KeyboardEvent, player : Player) => {
+	const PLAYERS_update = (e : KeyboardEvent, player : Player) => {
 		const target = e.target as HTMLInputElement
 
 		if(e.code == 'Enter') {
 			if(!player.name)
-				players.delete(player.id)
+				PLAYERS.delete(player.id)
 			else
-				players_add()
+				PLAYERS_add()
 		} else {
-			players.update(player.id, target.value)
+			PLAYERS.update(player.id, target.value)
 		}
 	}
 
-	const players_add = () => {
-		players.add()
-		game_focusOnLastInput()
+	const PLAYERS_add = () => {
+		PLAYERS.add()
+		GAME_focusOnLastInput()
+	}
+
+	const PLAYERS_delete = (player : Player) => {
+		PLAYERS.delete(player.id)
 	}
 
 	///////////////////////////////////////////////////////
 
 	// Focus on the last input field, to enter player name.
-	const game_focusOnLastInput = async () => {
+	const GAME_focusOnLastInput = async () => {
 		await tick()
 		const el : HTMLInputElement = document.querySelector('main .player:last-child input')
 		el?.focus()
 	}
 	
-	let resetOption = ''
-	const game_reset = () => {
-		if(resetOption == '' || !window.confirm('Are you sure?')) return
+	const GAME_reset = (e) => {
+		const menu = e.target as HTMLSelectElement
 
-		switch (resetOption) {
+		if(menu.value == '' || !window.confirm('Are you sure?')) return
+
+		switch (menu.value) {
 			case 'scores':
 				game.reset.scores()
 				break
 
 			case 'all':
 				game.reset.all()
-				game_focusOnLastInput()
+				GAME_focusOnLastInput()
 				break
 		}
 
-		resetOption = ''
+		menu.value = ''
 	}
 
-	///////////////////////////////////////////////////////
+	///// State ///////////////////////////////////////////
 
 	$: playerScores = new Map($game.players.map(player => [
 		player.id, 
@@ -116,43 +121,43 @@
 	///// Lifecycle ///////////////////////////////////////
 
 	onDestroy(() => {
-		timer = null
+		TIMER = null
 	})
 </script>
 
 <header>
-	<Timer bind:this={timer} />
+	<Timer bind:this={TIMER} />
 </header>
 <main>
 	<div>
 	{#each $game.players as player}
 		<div class="player">
 			<div class="name">
-				<input type="text" value="{player.name}" on:keyup={e => players_update(e, player)}>
+				<input type="text" value="{player.name}" on:keyup={e => PLAYERS_update(e, player)}>
 				{#if !player.name}
-					<div on:click={() => game.players.delete(player.id)} class="delete">&#10006;</div>
+					<div on:click={() => PLAYERS_delete(player)} class="delete">&#10006;</div>
 				{/if}
 			</div>
-			<div class="score" class:selected={scores_lastPlayer(player)}>
+			<div class="score" class:selected={SCORE_isLastScorer(player)}>
 				{playerScores.get(player.id)}
 			</div>
 			<div class="scorebuttons">
-				<Scorebuttons player={player} update={scores_update} />
+				<Scorebuttons player={player} update={SCORES_update} />
 			</div>
 		</div>
 	{/each}
 	</div>	
 </main>
 <footer>
-	<button on:click={players_add}>Add player</button>
-	<select bind:value={resetOption} on:change={game_reset}>
+	<button on:click={PLAYERS_add}>Add player</button>
+	<select on:change={GAME_reset}>
 		<option value="">Reset</option>
 		<option value="scores">Scores</option>
 		<option value="all">All</option>
 	</select>
 </footer>
 
-<Message message={message} />
+<Message message={MESSAGE} />
 
 
 <style lang="scss">
