@@ -2,7 +2,10 @@
 	import { timer as timerInterval } from './store'
 	import { readable } from 'svelte/store'
 	import { Howl } from 'howler'
+	import { onDestroy } from 'svelte'
 	
+	///////////////////////////////////////////////////////
+
 	const timer = readable(new Date(), set => {
 		setInterval(() => {
 			set(new Date())
@@ -24,7 +27,7 @@
 	const started = () => !!_countdown
 	const elapsed = () => started() && _countdown < new Date()
 
-	timer.subscribe(now => {
+	const unsubscribe = timer.subscribe(now => {
 		display = started()
 			? Math.max(0, Math.min($timerInterval, Math.round((_countdown.getTime() - now.getTime()) / 1000)))
 			: $timerInterval
@@ -44,10 +47,12 @@
 		_countdown = null
 	}
 
-	const userChangedInterval = e => {
+	const userChangedInterval = (e) => {
 		stop()
 		timerInterval.set(parseInt((e.target as HTMLInputElement).value))
 	}
+
+	onDestroy(unsubscribe)
 </script>
 
 

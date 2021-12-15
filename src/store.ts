@@ -30,7 +30,7 @@ subscribe(data => {
 
 export const game = {
     subscribe,
-    scores: {
+    points: {
         update: (player : Player, pointsChange : number) => {
             points.update(p => [...p, {playerId: player.id, points: pointsChange}])
         }

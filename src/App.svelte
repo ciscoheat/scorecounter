@@ -6,19 +6,26 @@
 	import { game } from './store'
 	import { onDestroy, tick } from 'svelte'
 	
-	import type { Player } from './types';
+	import type { Player } from './types'
 
-	$: scores = new Map($game.players.map(player => [
-		player.id, 
-		$game.points
-			.filter(point => point.playerId == player.id)
-			.reduce((score, point) => score + point.points, 0)
-	]))
+	///////////////////////////////////////////////////////
 
-	let _timer : {stop: () => void, start: () => void}
+	let scores = game.points
+
+	const scores_update = async (player : Player, points : number) => {
+		timer_stop()
+		scores.update(player, points)
+		message_displayAddedScore()
+	}
+
+	const scores_lastPlayer = (player : Player) => 
+		player.id == $game.points[$game.points.length-1]?.playerId
+
+	///////////////////////////////////////////////////////
+
 	let message = ''
 
-	const lastScorer = () => {
+	const message_displayAddedScore = () => {
 		const lastPoint = $game.points.length-1
 		const lastPlayer = lastPoint >= 0
 			? $game.players.find(p => p.id == $game.points[lastPoint].playerId)
@@ -28,103 +35,117 @@
 			let sum = 0
 			for (let i = lastPoint; i >= 0; i--) {
 				const point = $game.points[i];
-				if(point.playerId != lastPlayer.id) break;
+
+				if(point.playerId != lastPlayer.id) break
 				else sum += point.points
 			}
-			return {player: lastPlayer, score: sum}
-		} else {
-			return {player: null, score: 0}
+
+			const pointWord = 'point' + (Math.abs(sum) == 1 ? '' : 's')
+			const absPoints = Math.abs(sum)
+
+			message = (sum >= 0 
+				? `Added ${absPoints} ${pointWord} to `
+				: `Removed ${absPoints} ${pointWord} from `) + lastPlayer.name + '.'
 		}
 	}
 
-	const updateScore = async (player : Player, points : number) => {
-		_timer?.stop()
+	///////////////////////////////////////////////////////
 
-		game.scores.update(player, points)
-		const scorer = lastScorer()
+	let timer : {stop: () => void, start: () => void}
 
-		const pointWord = 'point' + (Math.abs(scorer.score) == 1 ? '' : 's')
-		const absPoints = Math.abs(scorer.score)
+	const timer_stop = () => timer.stop()
 
-		message = (scorer.score >= 0 
-			? `Added ${absPoints} ${pointWord} to `
-			: `Removed ${absPoints} ${pointWord} from `) + scorer.player.name + '.'
-	}
+	///////////////////////////////////////////////////////
 
-	const updatePlayer = (e : KeyboardEvent, player : Player) => {
+	let players = game.players
+
+	const players_update = (e : KeyboardEvent, player : Player) => {
 		const target = e.target as HTMLInputElement
 
 		if(e.code == 'Enter') {
 			if(!player.name)
-				game.players.delete(player.id)
+				players.delete(player.id)
 			else
-				addPlayer()
+				players_add()
 		} else {
-			game.players.update(player.id, target.value)
+			players.update(player.id, target.value)
 		}
 	}
 
-	const focusOnLastInputField = async () => {
+	const players_add = () => {
+		players.add()
+		game_focusOnLastInput()
+	}
+
+	///////////////////////////////////////////////////////
+
+	// Focus on the last input field, to enter player name.
+	const game_focusOnLastInput = async () => {
 		await tick()
-		// Focus on the last input field, to enter player name.
 		const el : HTMLInputElement = document.querySelector('main .player:last-child input')
-		if(el) el.focus()
+		el?.focus()
 	}
+	
+	let resetOption = ''
+	const game_reset = () => {
+		if(resetOption == '' || !window.confirm('Are you sure?')) return
 
-	const addPlayer = () => {
-		game.players.add()
-		focusOnLastInputField()
-	}
-
-	let resetType
-	const reset = () => {
-		if(resetType == '' || !window.confirm('Are you sure?')) return
-
-		switch (resetType) {
+		switch (resetOption) {
 			case 'scores':
 				game.reset.scores()
 				break
 
 			case 'all':
 				game.reset.all()
-				focusOnLastInputField()
+				game_focusOnLastInput()
 				break
 		}
 
-		resetType = ''
+		resetOption = ''
 	}
 
+	///////////////////////////////////////////////////////
+
+	$: playerScores = new Map($game.players.map(player => [
+		player.id, 
+		$game.points
+			.filter(point => point.playerId == player.id)
+			.reduce((score, point) => score + point.points, 0)
+	]))
+
+	///// Lifecycle ///////////////////////////////////////
+
 	onDestroy(() => {
-		_timer = null
+		timer = null
 	})
 </script>
 
 <header>
-	<Timer bind:this={_timer} />
+	<Timer bind:this={timer} />
 </header>
 <main>
 	<div>
 	{#each $game.players as player}
 		<div class="player">
 			<div class="name">
-				<input type="text" value="{player.name}" on:keyup={e => updatePlayer(e, player)}>
+				<input type="text" value="{player.name}" on:keyup={e => players_update(e, player)}>
 				{#if !player.name}
 					<div on:click={() => game.players.delete(player.id)} class="delete">&#10006;</div>
 				{/if}
 			</div>
-			<div class="score" class:selected={player.id == $game.points[$game.points.length-1]?.playerId}>
-				{scores.get(player.id)}
+			<div class="score" class:selected={scores_lastPlayer(player)}>
+				{playerScores.get(player.id)}
 			</div>
 			<div class="scorebuttons">
-				<Scorebuttons player={player} update={updateScore} />
+				<Scorebuttons player={player} update={scores_update} />
 			</div>
 		</div>
 	{/each}
 	</div>	
 </main>
 <footer>
-	<button on:click={addPlayer}>Add player</button>
-	<select bind:value={resetType} on:change={reset}>
+	<button on:click={players_add}>Add player</button>
+	<select bind:value={resetOption} on:change={game_reset}>
 		<option value="">Reset</option>
 		<option value="scores">Scores</option>
 		<option value="all">All</option>
