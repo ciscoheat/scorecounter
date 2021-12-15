@@ -1,6 +1,8 @@
 <script lang="ts">
-	export let player
-	export let update
+	import type { Player } from "./types";
+
+	export let player : Player
+	export let update : (player : Player, points : number) => void
 </script>
 
 <div>

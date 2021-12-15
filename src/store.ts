@@ -1,10 +1,10 @@
 import { get, writable, derived } from 'svelte/store'
-import type { Game, PlayerId, Player, ScoreUpdate } from './types'
+import type { Game, PlayerId, ScoreUpdate } from './types'
 
 ///////////////////////////////////////////////////////////
 
 const initialState = () => ({
-    timer: 30,
+    timer: 60,
     players: [{name: '', id: 1}],
     points: []
 } as Game)
@@ -12,10 +12,10 @@ const initialState = () => ({
 // Load saved game or use default
 const gameState : Game = JSON.parse(localStorage.getItem('game')) ?? initialState()
 
-const players = writable(gameState.players as Player[])
-const points = writable(gameState.points as ScoreUpdate[])
+const players = writable(gameState.players)
+const points = writable(gameState.points)
 
-export const timer = writable(gameState.timer ?? 30)
+export const timer = writable(gameState.timer)
 
 const { subscribe } = derived([players, points, timer], ([$players, $points, $timer]) => ({
     players: $players,
@@ -31,8 +31,8 @@ subscribe(data => {
 export const game = {
     subscribe,
     points: {
-        update: (player : Player, pointsChange : number) => {
-            points.update(p => [...p, {playerId: player.id, points: pointsChange}])
+        update: (id : PlayerId, pointsChange : number) => {
+            points.update(p => [...p, {playerId: id, points: pointsChange}])
         }
     },
     players: {

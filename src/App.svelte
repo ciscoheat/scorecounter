@@ -12,9 +12,9 @@
 
 	let SCORES = game.points
 
-	const SCORES_update = async (player : Player, points : number) => {
+	const SCORES_update = (player : Player, points : number) => {
 		TIMER_stop()
-		SCORES.update(player, points)
+		SCORES.update(player.id, points)
 		MESSAGE_displayAddedScore()
 	}
 
