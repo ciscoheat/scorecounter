@@ -10,7 +10,7 @@
 
 	///////////////////////////////////////////////////////
 
-	let SCORES = game.points
+	const SCORES = game.points
 
 	const SCORES_update = (player : Player, points : number) => {
 		TIMER_stop()
@@ -18,8 +18,12 @@
 		MESSAGE_displayAddedScore()
 	}
 
-	const SCORE_isLastScorer = (player : Player) => 
+	const SCORES_isLastScorer = (player : Player) => 
 		player.id == $game.points[$game.points.length-1]?.playerId
+
+	const SCORES_for = (player : Player) =>	$game.points
+		.filter(point => point.playerId == player.id)
+		.reduce((score, point) => score + point.points, 0)
 
 	///////////////////////////////////////////////////////
 
@@ -57,14 +61,14 @@
 
 	///////////////////////////////////////////////////////
 
-	let PLAYERS = game.players
+	const PLAYERS = game.players
 
 	const PLAYERS_update = (e : KeyboardEvent, player : Player) => {
 		const target = e.target as HTMLInputElement
 
 		if(e.code == 'Enter') {
 			if(!player.name)
-				PLAYERS.delete(player.id)
+				PLAYERS_delete(player)
 			else
 				PLAYERS_add()
 		} else {
@@ -83,6 +87,8 @@
 
 	///////////////////////////////////////////////////////
 
+	const GAME = game
+
 	// Focus on the last input field, to enter player name.
 	const GAME_focusOnLastInput = async () => {
 		await tick()
@@ -97,26 +103,17 @@
 
 		switch (menu.value) {
 			case 'scores':
-				game.reset.scores()
+				GAME.reset.scores()
 				break
 
 			case 'all':
-				game.reset.all()
+				GAME.reset.all()
 				GAME_focusOnLastInput()
 				break
 		}
 
 		menu.value = ''
 	}
-
-	///// State ///////////////////////////////////////////
-
-	$: playerScores = new Map($game.players.map(player => [
-		player.id, 
-		$game.points
-			.filter(point => point.playerId == player.id)
-			.reduce((score, point) => score + point.points, 0)
-	]))
 
 	///// Lifecycle ///////////////////////////////////////
 
@@ -138,8 +135,8 @@
 					<div on:click={() => PLAYERS_delete(player)} class="delete">&#10006;</div>
 				{/if}
 			</div>
-			<div class="score" class:selected={SCORE_isLastScorer(player)}>
-				{playerScores.get(player.id)}
+			<div class="score" class:selected={SCORES_isLastScorer(player)}>
+				{SCORES_for(player)}
 			</div>
 			<div class="scorebuttons">
 				<Scorebuttons player={player} update={SCORES_update} />
