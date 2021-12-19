@@ -3,10 +3,12 @@
 	import Message from './Message.svelte'
 	import Timer from './Timer.svelte';
 
+	import { slide } from 'svelte/transition'
+
 	import { game } from './store'
 	import { onDestroy, tick } from 'svelte'
 	
-	import type { Player } from './types'
+	import type { Player, PlayerId } from './types'
 
 	///////////////////////////////////////////////////////
 
@@ -115,6 +117,43 @@
 		menu.value = ''
 	}
 
+	///// State ///////////////////////////////////////////
+
+	let TALLY = false
+
+	const TALLY_toggle = () => TALLY = !TALLY
+
+	const TALLY_list = (player : Player) => {
+		if($game.points.length == 0) return [0]
+
+		const tally : {id: PlayerId, sum: number}[] = []
+		let id = $game.points[0].playerId
+		let sum = 0
+
+		// Group all points per player
+		for (const point of $game.points) {
+			if(id != point.playerId) {
+				tally.push({id, sum})
+				id = point.playerId
+				sum = point.points
+			} else {
+				sum += point.points
+			}
+		}
+		tally.push({id, sum})
+
+		// Filter out all other points
+		const tally2 = tally.filter(t => t.id == player.id).map(t => t.sum)
+		if(tally2.length == 0) return [0]
+
+		// Incrementally add the sum of all points
+		for (let i = 0; i < tally2.length; i++) {
+			if(i > 0) tally2[i] += tally2[i-1]		
+		}
+
+		return tally2
+	}
+
 	///// Lifecycle ///////////////////////////////////////
 
 	onDestroy(() => {
@@ -135,9 +174,14 @@
 					<div on:click={() => PLAYERS_delete(player)} class="delete">&#10006;</div>
 				{/if}
 			</div>
-			<div class="score" class:selected={SCORES_isLastScorer(player)}>
+			<div class="score" class:selected={SCORES_isLastScorer(player)} on:click={TALLY_toggle}>
 				{SCORES_for(player)}
 			</div>
+			{#if TALLY}
+			<div class="tally" transition:slide>
+				{#each TALLY_list(player) as t}<div>{t}</div>{/each}
+			</div>
+			{/if}
 			<div class="scorebuttons">
 				<Scorebuttons player={player} update={SCORES_update} />
 			</div>
@@ -179,6 +223,7 @@
 			grid-template-rows: auto;
 			grid-template-areas: 
 				"name score"
+				"tally tally"
 				"scorebuttons scorebuttons";
 
 			margin-bottom: 30px;
@@ -218,6 +263,23 @@
 					padding: 6px 10px;
 					border: 1px solid #888;
 				}
+			}
+
+			.tally {
+				grid-area: tally;
+				display: flex;
+				flex-wrap: wrap;
+				
+				div {
+					margin-right: 5px;
+
+					&:not(:last-child) {
+						text-decoration: line-through;
+					}
+				}
+
+				font-size: smaller;
+				margin-bottom: 8px;
 			}
 
 			.scorebuttons {
